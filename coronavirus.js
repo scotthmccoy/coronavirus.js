@@ -1,28 +1,3 @@
-//Coronavirus! It incubates for 2-14 days. Symptoms start after 5-7, and you typically pass it on to 2-4 people.
-
-// let data = [
-// 	{generation:"Gen Z", 		ageLowbound:0,	ageHighbound:5,		populationMale:10.13,	populationFemale:9.68,	killRatePercent:0},
-// 	{generation:"Gen Z", 		ageLowbound:5,	ageHighbound:9,		populationMale:10.32,	populationFemale:9.88,	killRatePercent:0},
-// 	{generation:"Gen Z", 		ageLowbound:10,	ageHighbound:14,	populationMale:10.66,	populationFemale:10.22,	killRatePercent:0.2},
-// 	{generation:"Millenial",	ageLowbound:15,	ageHighbound:19,	populationMale:10.77,	populationFemale:10.32,	killRatePercent:0.2},
-// 	{generation:"Millenial",	ageLowbound:20,	ageHighbound:24,	populationMale:11.20,	populationFemale:10.67,	killRatePercent:0.2},
-// 	{generation:"Millenial",	ageLowbound:25,	ageHighbound:29,	populationMale:12.02,	populationFemale:11.54,	killRatePercent:0.2},
-// 	{generation:"Millenial",	ageLowbound:30,	ageHighbound:34,	populationMale:11.19,	populationFemale:10.94,	killRatePercent:0.2},
-// 	{generation:"Gen X",		ageLowbound:35,	ageHighbound:39,	populationMale:10.79,	populationFemale:10.77,	killRatePercent:0.2},
-// 	{generation:"Gen X",		ageLowbound:40,	ageHighbound:44,	populationMale:9.8,		populationFemale:9.92,	killRatePercent:0.4},
-// 	{generation:"Gen X",		ageLowbound:45,	ageHighbound:49,	populationMale:10.26,	populationFemale:10.48,	killRatePercent:0.4},
-// 	{generation:"Gen X",		ageLowbound:50,	ageHighbound:54,	populationMale:10.28,	populationFemale:10.61,	killRatePercent:1.3},
-// 	{generation:"Boomer",		ageLowbound:55,	ageHighbound:59,	populationMale:10.67,	populationFemale:11.27,	killRatePercent:1.3},
-// 	{generation:"Boomer",		ageLowbound:60,	ageHighbound:64,	populationMale:9.73,	populationFemale:10.6,	killRatePercent:3.6},
-// 	{generation:"Boomer",		ageLowbound:65,	ageHighbound:69,	populationMale:8.03,	populationFemale:9.05,	killRatePercent:3.6},
-// 	{generation:"Boomer",		ageLowbound:70,	ageHighbound:74,	populationMale:6.21,	populationFemale:7.19,	killRatePercent:8},
-// 	{generation:"Silent",		ageLowbound:75,	ageHighbound:79,	populationMale:4.14,	populationFemale:5.12,	killRatePercent:8},
-// 	{generation:"Silent",		ageLowbound:80,	ageHighbound:84,	populationMale:2.59,	populationFemale:3.54,	killRatePercent:14.8},
-// 	{generation:"Silent",		ageLowbound:85,	ageHighbound:90,	populationMale:2.33,	populationFemale:4.22,	killRatePercent:14.8}
-// ];
-
-
-
 //Setup Virus stats
 let virulence = 3;
 let incubationLowbound = 2
@@ -55,19 +30,20 @@ while (currentlyInfected > 0) {
 
 	//Move the clock forward 1 day
 	currentDate.setDate(currentDate.getDate()+1);
-	
-	//Move the incubation queue forward by 1 day and get all viruses that are done incubating
+
+	//Move the incubation queue forward by 1 day and get all people that are done incubating
 	incubationQueue.unshift(0);
-	let virusesDoneIncubating = incubationQueue.pop();
+	let peopleDoneIncubating = incubationQueue.pop();
 
-	//Kill some hosts who finished incubating. The rest recover.
-	totalDead += killRate * virusesDoneIncubating;
-	totalRecovered += (1-killRate) * virusesDoneIncubating;
+	//Tracking symptom progression is currently beyond the scope of this simulation.
+	//For convenience's sake each person who finishes incubating immediately splits into partially recovered and partially dead.
+	//In reality symptoms start 5-7 days after incubation begins and weeks to result in death or recovery.
+	totalDead += killRate * peopleDoneIncubating;
+	totalRecovered += (1-killRate) * peopleDoneIncubating;
 
-
-	//The Virus Spreads!
+	//The Virus Spreads
 	if (!everyoneInfected) {
-		let numNewInfected = virusesDoneIncubating * 3;
+		let numNewInfected = peopleDoneIncubating * virulence;
 
 		//Cap the spread of the virus to the total population
 		if (totalEverInfected + numNewInfected > totalPopulation) {
@@ -75,7 +51,6 @@ while (currentlyInfected > 0) {
 			numNewInfected = totalPopulation - totalEverInfected;
 			console.log("Everyone has been infected");
 		}
-
 
 		totalEverInfected += numNewInfected;
 
