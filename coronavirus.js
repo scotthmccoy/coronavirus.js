@@ -2,10 +2,28 @@
 let virulence = 3;
 let incubationLowbound = 2
 let incubationHighbound = 14;
-let incubationTypical = (incubationHighbound - incubationLowbound)/2;
+let incubationRange = incubationHighbound - incubationLowbound;
+let incubationTypical = incubationRange/2;
 let asymptomaticLength = 6
 let symptomaticLength = 10;
 let killRate = 0.02;
+
+//Set up government stats
+
+//Maximum amount the government can reduce virulence by. Higher = more powerful government
+//I chose 0.65 because I am optimistic about our ability to do what it takes to quarentine once the seriousness of the situation is understood.
+let maxGovernmentImpactOnVirulence = 0.65;	
+
+//Number of deaths for containment measures to reach max power. Lower = more responsive government. 
+//I chose 800 as a starting value as that was the total number of deaths from SARS before deaths leveled off: 
+//https://lh3.googleusercontent.com/proxy/gfxTB186nkF5-A7aEG6iFabktSvjQo9-IPjEkKq7RfSw8V0QzinAj8jirEAkaPCrro-3w9jyiqZXrWXDv_aI5w
+//Then multiplied by 20 because:
+//1) Unlike SARS, it is virulent while it is asymptomatic meaning many people will spread it unknowingly
+//2) The virus is mild in 85% of cases
+//2) Requiring 3 weeks of quarentine is basically asking poor people to kill themselves
+let deathThresholdForMaxGovernmentImpact = 16000;	
+
+
 
 
 //Setup queues
@@ -18,7 +36,7 @@ incubationQueue[incubationTypical] = 1;
 
 //Choose start date arbitrarily such that first death occurs on March 1st
 let dateStart = new Date("2020/01/16");
-let endDate = new Date("2021/01/01");
+let endDate = new Date("2020/12/31");
 
 //Set up variables
 let currentDate = dateStart;
@@ -34,7 +52,8 @@ let everyoneInfected = false;
 
 
 
-while (numIncubating > 0 || numAsymptomatic > 0 || numSymptomatic > 0) {
+
+while (currentDate < endDate && (numIncubating > 0 || numAsymptomatic > 0 || numSymptomatic > 0)) {
 
 	//Move the clock forward 1 day
 	currentDate.setDate(currentDate.getDate()+1);
@@ -46,9 +65,20 @@ while (numIncubating > 0 || numAsymptomatic > 0 || numSymptomatic > 0) {
 	//The Virus Spreads
 	let numNewInfected = 0;
 	if (!everyoneInfected) {
-		numNewInfected = peopleDoneIncubating * virulence;
+
+		//Virulence drops based on government responses to deaths. Note: this part is entirely speculative. 
+		let modifiedVirulence = virulence;
+		if (totalDead < deathThresholdForMaxGovernmentImpact) {
+			modifiedVirulence *= (1-maxGovernmentImpactOnVirulence * totalDead / deathThresholdForMaxGovernmentImpact);
+		} else {
+			modifiedVirulence *= (1-maxGovernmentImpactOnVirulence);
+		}
+
+		//Virulence drops further as people who have been infected can't get the virus again
+		modifiedVirulence = modifiedVirulence * (1 - totalEverInfected/totalPopulation);
 
 		//Cap the spread of the virus to the total population
+		numNewInfected = Math.ceil(peopleDoneIncubating * modifiedVirulence);
 		if (totalEverInfected + numNewInfected > totalPopulation) {
 			everyoneInfected = true;
 			numNewInfected = totalPopulation - totalEverInfected;
@@ -57,15 +87,15 @@ while (numIncubating > 0 || numAsymptomatic > 0 || numSymptomatic > 0) {
 		totalEverInfected += numNewInfected;
 
 		//Give the newly infected a "randomly" generated incubation period. 
-		let addToEachSlot = Math.floor(numNewInfected / 11);
+		let addToEachSlot = Math.floor(numNewInfected / incubationRange);
 		if (addToEachSlot >0) {
-			for (let i=0; i<11; i++) {
+			for (let i=0; i<incubationRange; i++) {
 				incubationQueue[i]+= addToEachSlot;
 			}
 		}
 
 		//Give the remainder a "typical" incubation duration
-		incubationQueue[incubationTypical]+=numNewInfected % 11;
+		incubationQueue[incubationTypical]+=numNewInfected % incubationRange;
 	}
 
 	//Add the newly infected to the asymptomatic queue
