@@ -52,7 +52,6 @@ while (numIncubating > 0 || numAsymptomatic > 0 || numSymptomatic > 0) {
 		if (totalEverInfected + numNewInfected > totalPopulation) {
 			everyoneInfected = true;
 			numNewInfected = totalPopulation - totalEverInfected;
-			console.log("Everyone has been infected");
 		}
 
 		totalEverInfected += numNewInfected;
