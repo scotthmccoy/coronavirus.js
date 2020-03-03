@@ -9,19 +9,16 @@ let symptomaticLength = 10;
 let killRate = 0.02;
 
 //Set up government stats
-
+//https://lh3.googleusercontent.com/proxy/gfxTB186nkF5-A7aEG6iFabktSvjQo9-IPjEkKq7RfSw8V0QzinAj8jirEAkaPCrro-3w9jyiqZXrWXDv_aI5w
 //Maximum amount the government can reduce virulence by. Higher = more powerful government
 //I chose 0.65 because I am optimistic about our ability to do what it takes to quarentine once the seriousness of the situation is understood.
-let maxGovernmentImpactOnVirulence = 0.65;	
+let maxGovernmentImpactOnVirulence = 0.75;	
 
-//Number of deaths for containment measures to reach max power. Lower = more responsive government. 
-//I chose 800 as a starting value as that was the total number of deaths from SARS before deaths leveled off: 
-//https://lh3.googleusercontent.com/proxy/gfxTB186nkF5-A7aEG6iFabktSvjQo9-IPjEkKq7RfSw8V0QzinAj8jirEAkaPCrro-3w9jyiqZXrWXDv_aI5w
-//Then multiplied by 20 because:
+//Number of total infections for containment measures to reach max power. Lower = more responsive government. 
 //1) Unlike SARS, it is virulent while it is asymptomatic meaning many people will spread it unknowingly
 //2) The virus is mild in 85% of cases
 //2) Requiring 3 weeks of quarentine is basically asking poor people to kill themselves
-let deathThresholdForMaxGovernmentImpact = 16000;	
+let totalInfectionThresholdForMaxGovernmentImpact = 75000 * 1.5;	
 
 
 
@@ -34,8 +31,8 @@ let symptomaticQueue = new Array(symptomaticLength).fill(0);
  //Start with patient zero having a typical incubation period.
 incubationQueue[incubationTypical] = 1;
 
-//Choose start date arbitrarily such that first death occurs on March 1st
-let dateStart = new Date("2020/01/16");
+//Choose start date arbitrarily such that first deaths occur in late Feb, Early March
+let dateStart = new Date("2020/01/03");
 let endDate = new Date("2020/12/31");
 
 //Set up variables
@@ -68,8 +65,8 @@ while (currentDate < endDate && (numIncubating > 0 || numAsymptomatic > 0 || num
 
 		//Virulence drops based on government responses to deaths. Note: this part is entirely speculative. 
 		let modifiedVirulence = virulence;
-		if (totalDead < deathThresholdForMaxGovernmentImpact) {
-			modifiedVirulence *= (1-maxGovernmentImpactOnVirulence * totalDead / deathThresholdForMaxGovernmentImpact);
+		if (totalEverInfected < totalInfectionThresholdForMaxGovernmentImpact) {
+			modifiedVirulence *= (1-maxGovernmentImpactOnVirulence * totalEverInfected / totalInfectionThresholdForMaxGovernmentImpact);
 		} else {
 			modifiedVirulence *= (1-maxGovernmentImpactOnVirulence);
 		}
